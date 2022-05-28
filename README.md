@@ -18,7 +18,7 @@
 
 ---
 ## Applet
-It sets it's password and AES key during the creation process, using the `CREATE` apdu. Checkout [the APDU examples](AesApplet\apdu_scripts\examples.script)
+It sets it's password and AES key during the creation process, using the `CREATE` apdu. Checkout [the APDU examples](AesApplet\apdu_scripts\examples.md)
 
 There are 4 main instructions:
 1. Initialization  of the cipher (encrypt / decrypt)
