@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="App -d" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.cipdev.jcapp.App" />
+    <module name="HostApp" />
+    <option name="PROGRAM_PARAMETERS" value="-i C:\Users\cipdev\jc-encrypt\HostApp\data\message.txt.out -o C:\Users\cipdev\jc-encrypt\HostApp\data\message-dec.txt -d" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.cipdev.jcapp.util.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

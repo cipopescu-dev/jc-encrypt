@@ -4,17 +4,7 @@
 * `JC_HOME` variable set, on a folder containing both the tools and simulator (just extract jc tools over jc simulator)
 * JDK 17 (note: target is `java 1.7` for the Applet, since language level 17 is not supported yet.)
 * ClassPath set with `$JC_HOME/lib/*` 
-* Custom `.vscode\settings.json` template to ignore classpath errors in vscode
-  ```JSON
-  {
-    "java.project.referencedLibraries": [
-        "c:\\Users\\cipdev\\jc310\\lib\\*" 
-    ],
-    "java.project.sourcePaths": [
-        "AesApplet/src"
-    ]
-  }
-  ```
+
 # Applet
 It sets it's password and AES key during the creation process, using the `CREATE` apdu. Checkout [the APDU examples](AesApplet/apdu_scripts/examples.md)
 
@@ -47,13 +37,21 @@ Long story short:
 3. Will ask for a password
 4. Will proceed to encrypt or decrypt.
 > At any given point, if one instruction fail because of a known isse (ex: pad password) the process will exit with `code 1` and show a message on screen.
-# Testing
-1. Open `AesApplet` folder in eclipse ('cause of JCard support) and build the project 
-2. Open `HostApp` folder in any Java IDE and build the project
-3. Start the applet
-4. Copy-paste the creation scripts. Make sure you send the `create` apdu with a password and an AES-key
-5. Start the `HostApp`'s main.
-> If you want to skip step 1 2 3 and 4 you can start the simulator with a given memory file via CLI using the following:
-```
-cref_tdual -i AesApplet/simulator_roms/AesApplet.eeprom
-```
+# Scripts
+## Applet preparation
+Run `.\scripts\waterfall.bat` to quick:
+1. compile the Applet
+2. convert the `.class` files into `.cap` deliverables
+3. verify the generated classes
+4. generate the `.cap` script for the Card.
+
+## Starting the applet
+
+1. Open `cref_tdual` in a second console
+2. Open `apdutool` and type `powerup;` in order to "power" the simulator.
+3. Copy-paste the the [`custom-create.script`](scripts/custom-create.script) in order to initialize the Applet with a PIN and an AES key
+
+> We can actually skip the copy-paste part if we store the memory into a file. To do so, just add `-o memory_file.eeprom` when starting the simulator and after setting it up you can reload the memory using `-i memory_file.eeprom`. An already built memory file can be found [here](AesApplet/simulator_roms). It's given password is `CAPIBARA`.
+
+## HostApp preparation
+Simply open `HostApp` folder with Intelij. Sample encrpyt and decrypt configurations are already saved as project files. All you need to do is to include your own `%JC_HOME%\lib\*` into classpath.

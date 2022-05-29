@@ -1,0 +1,12 @@
+Digest for com/cipdev/jc/javacard/RefLocation.cap		[SHA-256: 5164f40847ebefe306488216dbc541125ac00b1345b1ae0da687bc5ddd6cc674]
+Digest for com/cipdev/jc/javacard/Method.cap		[SHA-256: 65e84e617e70610991d4f0cf556efe76da934dbb128f084f7bef097790a23627]
+Digest for com/cipdev/jc/javacard/Import.cap		[SHA-256: 5a025743641138f858ea16a1fd750df9a9e9a29c1f203bf00c80705b3ecb8542]
+Digest for com/cipdev/jc/javacard/Directory.cap		[SHA-256: 1706a18975d41f2e2b28694d050258c83e1c9770f85b7399531638c037d79793]
+Digest for com/cipdev/jc/javacard/ConstantPool.cap		[SHA-256: 59e12f8c8f2700c528dc8a2430328a99fbf12bd802c26d38968f01d080673870]
+Digest for com/cipdev/jc/javacard/StaticField.cap		[SHA-256: 5853089acdd3089a051dbdce3f91678d47dcbf8f0d6b31d8a608b079718c0c18]
+Digest for com/cipdev/jc/javacard/Header.cap		[SHA-256: e7aa6d19435d7d33de24fe13cdb225622170853497e2f138571ebee7ebefea83]
+Digest for com/cipdev/jc/javacard/Class.cap		[SHA-256: 1e749895450c91c3268fe214e19891a1e67b98c5740335339e27ec3df7768221]
+Digest for com/cipdev/jc/javacard/Debug.cap		[SHA-256: a37783b12680678053a0015ec6033db34f404ff96b433e2e994fb2145d65cfd2]
+Digest for com/cipdev/jc/javacard/Descriptor.cap		[SHA-256: aa689e03b9144ed56cf37f79ac0bbdfddd3751f3dd31f37cbc0fdd087c3af06c]
+Digest for com/cipdev/jc/javacard/Applet.cap		[SHA-256: c184969b5b2944e6b1f01a1a492792f87e2838c893afe18d896effe0fee9b8e8]
+Verification completed with 0 warnings and 0 errors.

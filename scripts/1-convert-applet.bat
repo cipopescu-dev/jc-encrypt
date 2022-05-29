@@ -1,0 +1,1 @@
+converter.bat -config scripts/convert-AesApplet.conf
