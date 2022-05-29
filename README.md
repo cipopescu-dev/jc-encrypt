@@ -15,9 +15,7 @@
     ]
   }
   ```
-
----
-## Applet
+# Applet
 It sets it's password and AES key during the creation process, using the `CREATE` apdu. Checkout [the APDU examples](AesApplet/apdu_scripts/examples.md)
 
 There are 4 main instructions:
@@ -27,8 +25,7 @@ There are 4 main instructions:
 4. Validation of password 
 
 > Padding notice: Since Oracle card Simulator does not support any kind of padding for `AES-CBC`, the applet will append `0x00`s to the last set of bytes until it reach the 16-byte block size required for an `AES128` key.  We can easily store the initial size of the message at the start (or end) of the encrypted message.
----
-## Host App
+# Host App
 Using `org.apache.commons.cli` I managed to implement a nice interface for the HostApp:
 ```
 usage: java com.cipdev.jcapp.App -i inputFile
@@ -50,3 +47,13 @@ Long story short:
 3. Will ask for a password
 4. Will proceed to encrypt or decrypt.
 > At any given point, if one instruction fail because of a known isse (ex: pad password) the process will exit with `code 1` and show a message on screen.
+# Testing
+1. Open `AesApplet` folder in eclipse ('cause of JCard support) and build the project 
+2. Open `HostApp` folder in any Java IDE and build the project
+3. Start the applet
+4. Copy-paste the creation scripts. Make sure you send the `create` apdu with a password and an AES-key
+5. Start the `HostApp`'s main.
+> If you want to skip step 1 2 3 and 4 you can start the simulator with a given memory file via CLI using the following:
+```
+cref_tdual -i AesApplet/simulator_roms/AesApplet.eeprom
+```
