@@ -31,9 +31,9 @@ public class AesApplet extends Applet {
     final static short SW_PIN_VERIFICATION_FAILED = 0x6300;
     final static short SW_PIN_VERIFICATION_REQUIRED = 0x6301;
     final static short SW_CIPHER_NOMODESET = 0x6302;
-    final static short SW_CIPHER_BLOCK_NOALLIGN = 0x6303;
-    final static short SW_CIPHER_BLOCK_NEEDUPDATE = 0x6304;
-    final static short SW_CIPHER_BLOCK_OVERFLOW = 0x6305;
+    final static short SW_CIPHER_CHUNK_BAD_SIZE = 0x6303;
+    final static short SW_CIPHER_CHUNK_EMPTY = 0x6304;
+    final static short SW_CIPHER_CHUNK_OVERFLOW = 0x6305;
 
     final static byte PIN_MAX_SIZE = (byte) 0x0A;
     final static byte PIN_TRY_LIMIT = (byte) 0x03;
@@ -130,10 +130,12 @@ public class AesApplet extends Applet {
             ISOException.throwIt(SW_CIPHER_NOMODESET);
         byte[] buffer = apdu.getBuffer();
         short dataSize = apdu.setIncomingAndReceive();
+        if (dataSize == 0)
+            ISOException.throwIt(SW_CIPHER_CHUNK_EMPTY);
         if (dataSize % CIPHER_CHUNK_SIZE != 0)
-            ISOException.throwIt(SW_CIPHER_BLOCK_NOALLIGN);
+            ISOException.throwIt(SW_CIPHER_CHUNK_BAD_SIZE);
         if (dataSize > CIPHER_MAX_BLOCK_SIZE)
-            ISOException.throwIt(SW_CIPHER_BLOCK_OVERFLOW);
+            ISOException.throwIt(SW_CIPHER_CHUNK_OVERFLOW);
         for (short i = 0; i < dataSize / CIPHER_CHUNK_SIZE; i++) {
             cipher.update(buffer, (short) (i * CIPHER_CHUNK_SIZE + ISO7816.OFFSET_CDATA), (short) CIPHER_CHUNK_SIZE,
                     buffer,
@@ -150,18 +152,24 @@ public class AesApplet extends Applet {
             ISOException.throwIt(SW_CIPHER_NOMODESET);
         byte[] buffer = apdu.getBuffer();
         byte dataSize = (byte) (apdu.setIncomingAndReceive());
-        if (dataSize > 16)
-            ISOException.throwIt(SW_CIPHER_BLOCK_NEEDUPDATE);
-
-        for (short i = (short) (ISO7816.OFFSET_CDATA + dataSize); i < dataSize % CIPHER_CHUNK_SIZE
-                + ISO7816.OFFSET_CDATA + dataSize; i++)
+        if (dataSize == 0)
+            ISOException.throwIt(SW_CIPHER_CHUNK_EMPTY);
+        if (dataSize > CIPHER_MAX_BLOCK_SIZE)
+            ISOException.throwIt(SW_CIPHER_CHUNK_OVERFLOW);
+        short returnedDataSize;
+        if (dataSize < CIPHER_CHUNK_SIZE)
+            returnedDataSize = CIPHER_CHUNK_SIZE;
+        else
+            returnedDataSize = (short) (dataSize + (short) (CIPHER_CHUNK_SIZE - dataSize % CIPHER_CHUNK_SIZE));
+        for (short i = (short) (ISO7816.OFFSET_CDATA + dataSize); i < returnedDataSize; i++)
             buffer[i] = 0x00;
-        buffer[ISO7816.OFFSET_CDATA + CIPHER_CHUNK_SIZE] = 0x7F;
-        cipher.doFinal(buffer, ISO7816.OFFSET_CDATA, (short) CIPHER_CHUNK_SIZE, buffer, ISO7816.OFFSET_CDATA);
-        apdu.setOutgoingAndSend(ISO7816.OFFSET_CDATA, CIPHER_CHUNK_SIZE);
+        buffer[ISO7816.OFFSET_LC] = (byte) returnedDataSize;
+        buffer[(short) (ISO7816.OFFSET_CDATA + returnedDataSize)] = 0x7F;
+        cipher.doFinal(buffer, ISO7816.OFFSET_CDATA, returnedDataSize, buffer, ISO7816.OFFSET_CDATA);
+        apdu.setOutgoingAndSend(ISO7816.OFFSET_CDATA, returnedDataSize);
     }
 
-    private void verify(APDU apdu) { 
+    private void verify(APDU apdu) {
         byte[] buffer = apdu.getBuffer();
         byte byteRead = (byte) (apdu.setIncomingAndReceive());
         if (pin.check(buffer, ISO7816.OFFSET_CDATA, byteRead) == false)

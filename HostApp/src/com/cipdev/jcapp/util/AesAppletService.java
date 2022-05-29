@@ -4,11 +4,11 @@ import com.sun.javacard.apduio.Apdu;
 import com.sun.javacard.apduio.CadClientInterface;
 import com.sun.javacard.apduio.CadDevice;
 import com.sun.javacard.apduio.CadTransportException;
+import org.objectweb.asm.ByteVector;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class AesAppletService {
@@ -60,43 +60,51 @@ public class AesAppletService {
         }
     }
 
+    private static byte[] update(byte[] data) throws CadTransportException, IOException {
+        apdu = ApduRepository.getUpdateApdu(data);
+        cardInterface.exchangeApdu(apdu);
+        validateSWs(apdu.getSw1Sw2(), "UPDATE");
+        return apdu.getDataOut();
+    }
+
+    private static byte[] dofinal(byte[] data) throws CadTransportException, IOException {
+        apdu = ApduRepository.getDoFinalApdu(data);
+        cardInterface.exchangeApdu(apdu);
+        validateSWs(apdu.getSw1Sw2(), "DOFINAL");
+        return apdu.getDataOut();
+    }
+
     public static void doCipher(FileInputStream fis, FileOutputStream fos, boolean isDecrypt) {
-        try {
-
-            int fileSize = 0;
-            byte[] data = fis.readNBytes(CIPHER_MAX_CHUNK_SIZE);
-            byte[] finalChunk;
-            while (data.length > 0) {
-                fileSize += data.length;
-
-                if (isDecrypt) {
-
-                } else {
-                    if (data.length == CIPHER_MAX_CHUNK_SIZE) {
-                        apdu = ApduRepository.getUpdateApdu(data);
-                        cardInterface.exchangeApdu(apdu);
-                        validateSWs(apdu.getSw1Sw2(), "UPDATE");
-                        fos.write(apdu.getDataOut());
-                    } else {
-                        byte[] chunk = Arrays.copyOfRange(data, 0, data.length - (data.length % CIPHER_BLOCK_SIZE));
-                        finalChunk = Arrays.copyOfRange(data, data.length - (data.length % CIPHER_BLOCK_SIZE), data.length);
-
-                        apdu = ApduRepository.getUpdateApdu(chunk);
-                        cardInterface.exchangeApdu(apdu);
-                        validateSWs(apdu.getSw1Sw2(), "UPDATE");
-                        fos.write(apdu.getDataOut());
-
-                        apdu = ApduRepository.getDoFinalApdu(finalChunk);
-                        cardInterface.exchangeApdu(apdu);
-                        validateSWs(apdu.getSw1Sw2(), "DOFINAL");
-                        fos.write(apdu.getDataOut());
-
-                        fos.write(fileSize); // size of message. No padding, remember?
-                    }
+        try (BufferedInputStream bis = new BufferedInputStream(fis)) {
+            byte[] inputBytes = bis.readAllBytes();
+            byte[] chunk;
+            int extraChunkOffset;
+            if (isDecrypt) {
+                extraChunkOffset = inputBytes.length - CIPHER_BLOCK_SIZE - 4;
+                if (extraChunkOffset == 0 || extraChunkOffset == CIPHER_BLOCK_SIZE)
+                    extraChunkOffset = 4;
+                for (int i = 0; i < extraChunkOffset / CIPHER_MAX_CHUNK_SIZE; i++) {
+                    chunk = Arrays.copyOfRange(inputBytes, i * CIPHER_MAX_CHUNK_SIZE - 4, (i + 1) * CIPHER_MAX_CHUNK_SIZE - CIPHER_BLOCK_SIZE);
+                    fos.write(update(chunk));
                 }
+                int messageSize = ByteBuffer.wrap(Arrays.copyOfRange(inputBytes, 0, 4)).getInt();
+                chunk = Arrays.copyOfRange(inputBytes, extraChunkOffset, inputBytes.length);
+                fos.write(update(chunk), 0, inputBytes.length - (inputBytes.length - messageSize));
 
-                data = fis.readNBytes(CIPHER_MAX_CHUNK_SIZE);
+
+            } else {
+                fos.write(ByteBuffer.allocate(4).putInt(inputBytes.length).array());
+                for (int i = 0; i < inputBytes.length / CIPHER_MAX_CHUNK_SIZE; i++) {
+                    chunk = Arrays.copyOfRange(inputBytes, i * CIPHER_MAX_CHUNK_SIZE, (i + 1) * CIPHER_MAX_CHUNK_SIZE);
+                    fos.write(update(chunk));
+                }
+                extraChunkOffset = inputBytes.length / CIPHER_MAX_CHUNK_SIZE * CIPHER_MAX_CHUNK_SIZE;
+                if (extraChunkOffset < inputBytes.length) {
+                    chunk = Arrays.copyOfRange(inputBytes, extraChunkOffset, inputBytes.length);
+                    fos.write(dofinal(chunk));
+                }
             }
+
 
             cardInterface.powerDown();
             sock.close();
@@ -122,9 +130,9 @@ public class AesAppletService {
             case 0x02:
                 exitWithReason("AesApplet error: SW_CIPHER_NOMODESET");
             case 0x03:
-                exitWithReason("AesApplet error: SW_CIPHER_BLOCK_NOALLIGN");
+                exitWithReason("AesApplet error: SW_CIPHER_CHUNK_BAD_SIZE");
             case 0x04:
-                exitWithReason("AesApplet error: SW_CIPHER_BLOCK_NEEDUPDATE");
+                exitWithReason("AesApplet error: SW_CIPHER_CHUNK_EMPTY");
             case 0x05:
                 exitWithReason("AesApplet error: SW_CIPHER_BLOCK_OVERFLOW");
         }

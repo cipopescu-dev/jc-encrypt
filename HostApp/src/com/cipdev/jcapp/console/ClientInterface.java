@@ -1,16 +1,7 @@
-/*
- * Copyright (c) 2022. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
- * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
- * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
- * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
- * Vestibulum commodo. Ut rhoncus gravida arcu.
- */
-
 package com.cipdev.jcapp.console;
 
 import org.apache.commons.cli.*;
 
-import java.io.Console;
 import java.util.Scanner;
 
 public class ClientInterface {
@@ -24,7 +15,7 @@ public class ClientInterface {
         input.setRequired(true);
         options.addOption(input);
 
-        Option output = new Option("o", "output", true, "Output file path. Will store the result of the device running the JCApplet process. Defaults to \"output.enc\"");
+        Option output = new Option("o", "output", true, "Output file path. Will store the result of the device running the JCApplet process. Defaults to input filename + '.out'");
         output.setRequired(false);
         options.addOption(output);
 
@@ -47,7 +38,7 @@ public class ClientInterface {
             CommandLine cmd = parser.parse(options, args);
             clientOpts = ClientOpts.ClientOptsBuilder.aClientOpts()
                     .withInput(cmd.getOptionValue("input"))
-                    .withOutput(cmd.getOptionValue("output", "output.enc"))
+                    .withOutput(cmd.getOptionValue("output", cmd.getOptionValue("input") + ".out"))
                     .withMode(cmd.hasOption("d"))
                     .withHost(cmd.getOptionValue("host", "localhost"))
                     .withPort(Integer.parseInt(cmd.getOptionValue("port", "9025")))
