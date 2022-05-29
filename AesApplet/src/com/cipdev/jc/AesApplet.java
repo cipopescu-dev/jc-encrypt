@@ -37,7 +37,7 @@ public class AesApplet extends Applet {
 
     final static byte PIN_MAX_SIZE = (byte) 0x0A;
     final static byte PIN_TRY_LIMIT = (byte) 0x03;
-    final static byte CIPHER_MAX_BLOCK_SIZE = (byte) 0x80;
+    final static short CIPHER_MAX_BLOCK_SIZE = 0x0080;
     final static short CIPHER_CHUNK_SIZE = 0x0010;
 
     OwnerPIN pin;
@@ -158,10 +158,10 @@ public class AesApplet extends Applet {
             buffer[i] = 0x00;
         buffer[ISO7816.OFFSET_CDATA + CIPHER_CHUNK_SIZE] = 0x7F;
         cipher.doFinal(buffer, ISO7816.OFFSET_CDATA, (short) CIPHER_CHUNK_SIZE, buffer, ISO7816.OFFSET_CDATA);
-        apdu.setOutgoingAndSend(ISO7816.OFFSET_CDATA, dataSize);
+        apdu.setOutgoingAndSend(ISO7816.OFFSET_CDATA, CIPHER_CHUNK_SIZE);
     }
 
-    private void verify(APDU apdu) {
+    private void verify(APDU apdu) { 
         byte[] buffer = apdu.getBuffer();
         byte byteRead = (byte) (apdu.setIncomingAndReceive());
         if (pin.check(buffer, ISO7816.OFFSET_CDATA, byteRead) == false)
