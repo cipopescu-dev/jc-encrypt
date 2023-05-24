@@ -6,7 +6,7 @@
 * ClassPath set with `$JC_HOME/lib/*` 
 
 # Applet
-It sets it's password and AES key during the creation process, using the `CREATE` apdu. Checkout [the APDU examples](AesApplet/apdu_scripts/examples.md)
+It sets its password and AES key during the creation process, using the `CREATE` apdu. Checkout [the APDU examples](AesApplet/apdu_scripts/examples.md)
 
 There are 4 main instructions:
 1. Initialization  of the cipher (encrypt / decrypt)
